@@ -1,7 +1,10 @@
 package scheduleExecutorService;
 
+import org.junit.Test;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -24,7 +27,8 @@ public class ScheduleExecutorServiceTest {
 
 
     public static void main(String[] args) {
-        scheduleExecutorServiceTest();
+//        scheduleExecutorServiceTest();
+        nestSchedu();
     }
 
     public static void scheduleExecutorServiceTest() {
@@ -62,5 +66,39 @@ public class ScheduleExecutorServiceTest {
                 scheduledExecutorService0.shutdownNow();
             }
         }, 0L, 1L, TimeUnit.SECONDS);
+    }
+
+    public static void nestSchedu() {
+        TimeWaper timeWaper = new TimeWaper(3, 5, System.currentTimeMillis());
+        ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(2);
+
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            System.out.println("第" + timeWaper.longAdder.intValue() + "轮！");
+            timeWaper.longAdder.increment();
+            timeWaper.startTime = System.currentTimeMillis();
+        }, timeWaper.readyTime, timeWaper.roundPeriod, TimeUnit.SECONDS);
+
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
+            long delta = timeWaper.startTime + (1000L * timeWaper.roundPeriod) - System.currentTimeMillis();
+            System.out.println("第" + timeWaper.longAdder.intValue() + "轮还剩：" + delta + "秒！");
+        }, timeWaper.readyTime, 1L, TimeUnit.SECONDS);
+
+    }
+
+    private static class TimeWaper {
+
+        private LongAdder longAdder = new LongAdder();
+
+        private long readyTime;
+
+        private long roundPeriod;
+
+        volatile private long startTime;
+
+        public TimeWaper(long readyTime, long roundPeriod, long startTime) {
+            this.readyTime = readyTime;
+            this.roundPeriod = roundPeriod;
+            this.startTime = startTime;
+        }
     }
 }
