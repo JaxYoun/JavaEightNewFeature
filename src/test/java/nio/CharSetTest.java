@@ -26,6 +26,7 @@ public class CharSetTest {
 
     @Test
     public void test0() {
+        // TODO 解码打印报错
         Charset charset = Charset.forName("UTF-8");
         //获取编码器
         CharsetEncoder encoder = charset.newEncoder();
